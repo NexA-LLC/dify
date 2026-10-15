@@ -14,7 +14,8 @@ concurrency:
 jobs:
   test:
     name: Web Tests
-    runs-on: ubuntu-latest
+    # Public runner access needs explicit opt-in; untrusted events stay hosted.
+    runs-on: ${{ vars.NEXA_PUBLIC_SELF_HOSTED_RUNNER_ENABLED == 'true' && github.repository == 'NexA-LLC/dify' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "macOS", "ARM64", "buildchan"]') || 'ubuntu-latest' }}
     defaults:
       run:
         working-directory: ./web

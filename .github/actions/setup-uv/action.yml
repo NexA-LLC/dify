@@ -1,4 +1,5 @@
 name: Setup UV and Python
+description: Set up the repository-pinned uv and Python toolchain.
 
 inputs:
   python-version:
@@ -21,14 +22,41 @@ runs:
   using: composite
   steps:
     - name: Set up Python ${{ inputs.python-version }}
+      if: runner.os != 'macOS' || runner.arch != 'ARM64'
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
 
     - name: Install uv
+      if: runner.os != 'macOS' || runner.arch != 'ARM64'
       uses: astral-sh/setup-uv@v5
       with:
         version: ${{ inputs.uv-version }}
         python-version: ${{ inputs.python-version }}
         enable-cache: ${{ inputs.enable-cache }}
         cache-dependency-glob: ${{ inputs.uv-lockfile }}
+
+    - name: Set up job-local uv and Python
+      uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9
+      with:
+        version: 0.13.1
+        python-version: ${{ inputs.python-version }}
+        checksum: cfe454573412ff7380d15fc7dae5997ab53ffce72fce0a78e91ddbc84001acd2
+        enable-cache: false
+        cache-local-path: ${{ runner.temp }}/uv-cache-${{ github.job }}
+        tool-dir: ${{ runner.temp }}/uv-tools-${{ github.job }}
+        tool-bin-dir: ${{ runner.temp }}/uv-bin-${{ github.job }}
+      env:
+        UV_PYTHON_INSTALL_DIR: ${{ runner.temp }}/uv-python-${{ github.job }}
+        UV_PYTHON_BIN_DIR: ${{ runner.temp }}/uv-python-bin-${{ github.job }}
+        PIP_CACHE_DIR: ${{ runner.temp }}/pip-cache-${{ github.job }}
+      if: runner.os == 'macOS' && runner.arch == 'ARM64'
+    - name: Provision relocatable Python with pip
+      shell: bash
+      run: |
+        export UV_PYTHON_BIN_DIR="${RUNNER_TEMP}/uv-python-bin-${GITHUB_JOB}"
+        export PIP_CACHE_DIR="${RUNNER_TEMP}/pip-cache-${GITHUB_JOB}"
+        printf 'UV_PYTHON_BIN_DIR=%s\nPIP_CACHE_DIR=%s\n' "${UV_PYTHON_BIN_DIR}" "${PIP_CACHE_DIR}" >> "${GITHUB_ENV}"
+        uv venv --no-config --managed-python --python "${UV_PYTHON}" --seed "${RUNNER_TEMP}/python-${GITHUB_JOB}"
+        echo "${RUNNER_TEMP}/python-${GITHUB_JOB}/bin" >> "${GITHUB_PATH}"
+      if: runner.os == 'macOS' && runner.arch == 'ARM64'
