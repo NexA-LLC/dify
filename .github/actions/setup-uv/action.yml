@@ -1,4 +1,5 @@
 name: Setup UV and Python
+description: Set up the repository-pinned uv and Python toolchain.
 
 inputs:
   python-version:
