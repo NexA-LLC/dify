@@ -1,10 +1,20 @@
 # Fork runner allocation
 
-This public fork sends Python Style, Web Style and Web Tests to
-`[self-hosted, macOS, ARM64, buildchan]` only for trusted events owned by
-`NexA-LLC/dify`: same-repository pull requests, pushes and manual dispatches.
+This public fork prepares Python Style, Web Style and Web Tests for
+`[self-hosted, macOS, ARM64, buildchan]`. They keep the original `ubuntu-latest`
+runner unless the repository or organization variable
+`NEXA_PUBLIC_SELF_HOSTED_RUNNER_ENABLED` explicitly equals `'true'` and the event
+is trusted code owned by `NexA-LLC/dify`: same-repository pull requests, pushes
+and manual dispatches.
 External fork pull requests, pull_request_target and all other event types keep
 the original `ubuntu-latest` runner. The selector does not skip any check.
+
+The current buildman6 Default runner group excludes public repositories.
+These jobs therefore remain hosted until an owner explicitly permits this
+public repository in the runner group's access settings and enables the variable.
+Set the variable only after public runner access is available; otherwise an
+opted-in trusted job can remain queued. This preparation changes neither runner
+group settings nor repository/organization variables.
 
 Python keeps setup-uv/setup-python, the full locked API/default/dev dependencies,
 Ruff and dotenv checks. uv uses its project virtual environment. Native ARM64
@@ -50,5 +60,5 @@ cache all stay in `RUNNER_TEMP`; no account/global Python or permissions change.
 Existing dependency and test commands remain.
 
 The composite keeps its original setup-python and uv-version inputs on hosted
-Linux/fork jobs. Only trusted Mac ARM64 jobs use this relocatable path. The public
-fork runner selector and all lint assertions stay unchanged.
+Linux/fork jobs. Only opted-in trusted Mac ARM64 jobs use this relocatable path.
+All lint assertions remain unchanged.
