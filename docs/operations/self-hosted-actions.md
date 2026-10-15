@@ -39,3 +39,16 @@ database operation is manually triggered during this migration.
 
 Verify with actionlint, `git diff --check`, selector event cases and structural
 comparison of all workflow gates. Revert this commit to restore runner allocation.
+
+## Relocatable Python on buildman6
+
+The hosted setup-python Darwin ARM64 installer expects a `/Users/runner` prefix,
+which the actual `buildman` runner account cannot create. Native jobs preserve
+their Python version requests and use pinned setup-uv v7 / uv 0.13.1 with the
+official ARM64 checksum. Managed Python, seeded venvs, uv tools/cache/bin and pip
+cache all stay in `RUNNER_TEMP`; no account/global Python or permissions change.
+Existing dependency and test commands remain.
+
+The composite keeps its original setup-python and uv-version inputs on hosted
+Linux/fork jobs. Only trusted Mac ARM64 jobs use this relocatable path. The public
+fork runner selector and all lint assertions stay unchanged.
